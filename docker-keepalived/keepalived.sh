@@ -6,7 +6,23 @@
 /bin/sed -i "s/{{CHECK_IP}}/${CHECK_IP}/g" /etc/keepalived/keepalived.conf
 /bin/sed -i "s/{{CHECK_PORT}}/${CHECK_PORT}/g" /etc/keepalived/keepalived.conf
 /bin/sed -i "s/{{VRID}}/${VRID}/g" /etc/keepalived/keepalived.conf
-/bin/sed -i "s/{{INTERFACE}}/${INTERFACE}/g" /etc/keepalived/keepalived.conf
+#/bin/sed -i "s/{{INTERFACE}}/${INTERFACE}/g" /etc/keepalived/keepalived.conf
+
+# Allow different INTERFACE set in hosts INTERFACE can be set: eth0,eth1
+OLD_IFS="$IFS"
+IFS=","
+arr=(${INTERFACE})
+IFS="$OLD_IFS"
+for s in ${arr[@]}
+do
+  if cat /proc/net/dev | grep "${s}:" > /dev/null; then
+    /bin/sed -i "s/{{INTERFACE}}/${s}/g" /etc/keepalived/keepalived.conf
+    echo "$s interface set ok"
+    break
+  else
+    echo "$s not exists"
+  fi
+done
 
 # Make sure we react to these signals by running stop() when we see them - for clean shutdown
 # And then exiting
